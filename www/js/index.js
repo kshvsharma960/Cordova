@@ -115,6 +115,14 @@ function InitializeDB(){
     });
 }
 
+function DeleteAllData(){
+    function DeleteSucceeded(error){
+        alert("Successfully Deleted All Entries.");
+    }
+    myDB.transaction(function(transaction){
+        transaction.executeSql("delete from GUESTDETAILS",[],DeleteSucceeded);
+    });
+}
 var app = {
     // Application Constructor
     initialize: function() {
