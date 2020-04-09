@@ -26,6 +26,7 @@ $("purpose").change(function(){
 });
 
 var myDB ;
+var paramValues;
 
 function onResetClick(){
     var textArray = $("input");
@@ -88,7 +89,7 @@ var desc = "Lose Yourself";
 myDB.transaction(function(transaction)
 {
     var executeQuery = "INSERT INTO GUESTDETAILS (GUESTNAME,CONTACTPERSON,MOBILE,PURPOSE,EMAIL,NATIONALID) VALUES (?,?,?,?,?,?)";
-    let paramValues = [guestData.GuestName, guestData.ContactPerson,guestData.Mobile, guestData.Purpose,guestData.EMail, guestData.NationalIdentity];
+    paramValues = [guestData.GuestName, guestData.ContactPerson,guestData.Mobile, guestData.Purpose,guestData.EMail, guestData.NationalIdentity];
     transaction.executeSql(executeQuery,paramValues, InsertSuccess,InsertFailed); 
 });
 
@@ -100,6 +101,60 @@ function InsertSuccess(t,result){
 function InsertFailed(error){
     alert("Failed Inserting data...");
 }
+}
+
+function ExportToCSV(){  
+
+    function WriteToFile(str){
+function fail(){
+    console.log("Failed");
+}
+
+        function gotFS(fileSystem) {
+            fileSystem.getFile("test.txt", {create: true, exclusive: false}, gotFileEntry, fail);
+        }
+    
+        function gotFileEntry(fileEntry) {
+            fileEntry.createWriter(gotFileWriter, fail);
+        }
+    
+        function gotFileWriter(writer) {
+            writer.onwriteend = function() {
+                alert("Exported Successfully to : " + cordova.file.externalRootDirectory);
+            }
+            writer.onerror = function(e) {
+               alert('Write failed: ' + e.toString());
+            };
+
+            writer.write(str);
+            
+        }
+        window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, gotFS, fail);
+    }
+
+    function ReadSuccess(tx,result){
+        let str='';
+        
+            for(i=result.rows.length-1;i>=0;i--){    
+                $.each(Object.keys(result.rows.item(0)),function(j,v){        
+                str+=result.rows.item(i)[v] + ", ";   
+                }); 
+                str+="\n";
+            }
+        WriteToFile(str);    
+    }
+
+    function ReadFailed(error){
+        alert("Read From DB Failed...");
+    }
+    
+    myDB.transaction(function(transaction){
+        let selectQuery = "Select * from GUESTDETAILS";
+        transaction.executeSql(selectQuery,[],ReadSuccess,ReadFailed);
+    });
+
+    
+
 }
 
 function InitializeDB(){
@@ -142,5 +197,30 @@ var app = {
         var parentElement = document.getElementById(id);
     }
 };
-
+/*
+window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(fs){
+    fs.root.getFile("'"+audioData[0].name+"'", {create: true, exclusive: false},
+      function(entry){
+        var fileTransfer = new FileTransfer();
+        fileTransfer.download(
+                "file:///storage/emulated/0/Sounds/" + audioData[0].name, // the filesystem uri you mentioned                  
+                "cdvfile://localhost/temporary/" + audioData[0].name,
+                function(entry) {
+                    // do what you want with the entry here
+                    console.log("download complete: " + entry.fullPath);
+                    window.requestFileSystem(LocalFileSystem.TEMPORARY, 1000000000, gotFS, fail);
+                },
+                function(error) {
+                    console.log("error source " + error.source);
+                    console.log("error target " + error.target);
+                    console.log("error code " + error.code + "Cheeeese");
+                },
+                false,
+                null
+        );
+    }, function(){
+        alert("file create error");
+    });
+}, null);
+*/
 app.initialize();

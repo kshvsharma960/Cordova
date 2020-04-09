@@ -15,6 +15,12 @@
     <feature name="sqlDB">
         <param name="android-package" value="me.rahul.plugins.sqlDB.sqlDB" />
     </feature>
+    <feature name="FileTransfer">
+        <param name="android-package" value="org.apache.cordova.filetransfer.FileTransfer" />
+    </feature>
+    <feature name="Permissions">
+        <param name="android-package" value="com.android.plugins.Permissions" />
+    </feature>
     <name>CheckInApp</name>
     <description>
         A sample Apache Cordova application that responds to the deviceready event.
@@ -32,4 +38,6 @@
     <allow-intent href="geo:*" />
     <allow-intent href="market:*" />
     <preference name="loglevel" value="DEBUG" />
+    <preference name="AndroidPersistentFileLocation" value="Internal" />
+    <preference name="iosPersistentFileLocation" value="Library" />
 </widget>

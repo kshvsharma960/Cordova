@@ -1,1 +1,1 @@
-{"plugins":["cordova-plugin-whitelist","cordova-plugin-file","cordova-sqlite-storage","cordova-plugin-dbcopy"]}
+{"plugins":["cordova-plugin-whitelist","cordova-plugin-file","cordova-sqlite-storage","cordova-plugin-dbcopy","cordova-plugin-file-transfer","cordova-plugin-android-permissions"]}

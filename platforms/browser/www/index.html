@@ -28,7 +28,7 @@
             * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
                 * Enable inline JS: add 'unsafe-inline' to default-src
         -->
-        <meta http-equiv="Content-Security-Policy" content="default-src &apos;self&apos; data: gap: https://ssl.gstatic.com &apos;unsafe-eval&apos;; style-src &apos;self&apos; &apos;unsafe-inline&apos;; media-src *; img-src &apos;self&apos; data: content:;">
+        <meta http-equiv="Content-Security-Policy" content="default-src &apos;self&apos; data: gap: https://ssl.gstatic.com &apos;unsafe-inline&apos; &apos;unsafe-eval&apos;; style-src &apos;self&apos; &apos;unsafe-inline&apos;; media-src *; img-src &apos;self&apos; data: content:;">
         <meta name="format-detection" content="telephone=no">
         <meta name="msapplication-tap-highlight" content="no">
         <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
@@ -53,9 +53,17 @@
 		<div data-role="page" id="page1">
 			<div data-role="header">
 					<a href="#page2"  title="Goto Check-Out">Goto Check-Out</a>
-				<h1>Login</h1>				
+				<h1>Login</h1>	
+				<a href="#navpanel" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 			</div>
-			
+			<div data-role="panel" id="navpanel">
+				<div data-role="controlgroup" data-corners="true">
+					<a href="javascript:DeleteAllData()" data-role="button">Clear Data</a>
+					<a href="#" data-role="button">Search</a>
+					<a href="#" data-role="button">Export</a>
+					<a href="#" data-role="button">Admin Portal</a>
+				</div>
+			</div>
 			<div role="main" class="ui-content">				
 					<div id="checkinContent">
 						<table align="center" class="contentTable">
@@ -149,27 +157,22 @@
 			<div data-role="header">
 					<a href="#page1" title="Goto Check-In">Goto Check-In</a>
 				<h1>LogOff</h1>				
+				<a href="#navpanel2" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
+			</div>
+			<div data-role="panel" id="navpanel2">
+				<div data-role="controlgroup" data-corners="true">
+					<a href="javascript:DeleteAllData()" data-role="button">Clear Data</a>
+					<a href="#" data-role="button">Search</a>
+					<a href="javascript:ExportToCSV()" data-role="button">Export</a>
+					<a href="#" data-role="button">Admin Portal</a>
+				</div>
 			</div>
 			
 			<div role="main" class="ui-content">				
 				<div id="logoffContent">
-					<ul data-role="listview" >
-						<li class="listview">
-						<a>
-							<h3>
-								Keshav Sharma
-							</h3>
-							<p>
-								Contact Person : Madhav
-							</p>
-							<p>
-								Login Time : 10am
-							</p>
-
-						</a>
-					</li>
+					<ul id ="logoffContentUL" data-role="listview" >
+						
 					</ul>
-
 				</div>
 				
 			</div>
