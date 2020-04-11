@@ -32,7 +32,8 @@
         <meta name="format-detection" content="telephone=no">
         <meta name="msapplication-tap-highlight" content="no">
         <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
-        <link rel="stylesheet" type="text/css" href="css/index.css">
+		<link rel="stylesheet" type="text/css" href="css/index.css">
+		<link rel="stylesheet" type="text/css" href="css/profileCard.css">
 		<link rel="stylesheet" type="text/css" href="js/jquery-1.5.0.mobile.min.css">
 		<style>
 		/* For avoiding title truncation in wp8 */
@@ -164,7 +165,7 @@
 					<a href="javascript:DeleteAllData()" data-role="button">Clear Data</a>
 					<a href="#" data-role="button">Search</a>
 					<a href="javascript:ExportToCSV()" data-role="button">Export</a>
-					<a href="#" data-role="button">Admin Portal</a>
+					<a href="#page3" data-role="button">Admin Portal</a>
 				</div>
 			</div>
 			
@@ -176,6 +177,7 @@
 				</div>
 				
 			</div>
+		</div>
 			<!-- end of page 2 content -->
 
 <!-- jquery mobile page 3 -->
@@ -193,13 +195,47 @@
 	</div>
 	
 	<div role="main" class="ui-content">				
-		<div id="logoffContent">
-			<ul id ="logoffContentUL" data-role="listview" >
-				
-			</ul>
+		<div id="BadgeContent">
+			<div class="frame">
+				<div class="center">
+				  
+					  <div class="profile">
+						  <div class="image">
+							  <div class="circle-1"></div>
+							  <div class="circle-2"></div>
+							  <img src="https://100dayscss.com/codepen/jessica-potter.jpg" width="70" height="70" alt="Jessica Potter">
+						  </div>
+						  
+						  <div id ="ProfileGuestName" class="name">Jessica Potter</div>
+						  <div id= "ProfileContactPerson" class="subhead">Visual Artist</div>
+						  <div id= "ProfilePurpose" class="subhead">Visual Artist</div>
+						  
+						  <div class="actions">
+							  <button class="btn">Logout</button>
+							  <button onclick = "javascript:window.history.back();" class="btn">Back</button>
+						  </div>
+					  </div>
+					  
+					  <div class="stats">
+						  <div class="box">
+							  <span id= "ProfileMobile" class="value">523</span>
+							  <span class="parameter">Contact No.</span>
+						  </div>
+						  <div class="box">
+							  <span id="ProfileMailID" class="value">1387</span>
+							  <span class="parameter">Email-ID</span>
+						  </div>
+						  <div class="box">
+							  <span id ="ProfileLoginTime" class="value">146</span>
+							  <span class="parameter">Login Time</span>
+						  </div>
+					  </div>
+				</div>
+			  </div>
 		</div>
 		
 	</div>
+
 	<!-- end of page 3 content -->
 
 
