@@ -27,6 +27,14 @@ $("purpose").change(function(){
 
 var myDB ;
 var paramValues;
+var profilePageData={};
+profilePageData.ProfileGuestName=document.getElementById("ProfileGuestName");
+profilePageData.ProfileGuestContactPerson=document.getElementById("ProfileContactPerson");
+profilePageData.ProfilePurpose=document.getElementById("ProfilePurpose");
+profilePageData.ProfileMobile=document.getElementById("ProfileMobile");
+profilePageData.ProfileMailID=document.getElementById("ProfileMailID");;
+profilePageData.ProfileLoginTime=document.getElementById("ProfileLoginTime");
+
 
 function onResetClick(){
     var textArray = $("input");
@@ -53,11 +61,52 @@ function SendData(data){
     insertData(data);
 }
 
+function PopulateProfilePage(result){
+    if(result!=null){
+        if(result.rows.length>0){
+            let i=0;
+    profilePageData.ProfileGuestName.innerText=result.rows.item(i).guestname + " ("+result.rows.item(i).guestid+")";
+    profilePageData.ProfileGuestContactPerson.innerText=result.rows.item(i).contactperson;
+    profilePageData.ProfileMailID.innerText=result.rows.item(i).emailid;
+    profilePageData.ProfileMobile.innerText=result.rows.item(i).mobile;
+    profilePageData.ProfilePurpose.innerText=result.rows.item(i).purpose;
+    profilePageData.ProfileLoginTime.innerText=(new Date(result.rows.item(i).logintime).toLocaleTimeString([],{hour: '2-digit',minute:'2-digit'}));
+    }
+}
+}
+
+function GetProfileData(gid){
+    function ReadSuccess(tx,result){
+        PopulateProfilePage(result);        
+    }
+
+    function ReadFailed(tx,error){
+        alert("Read From DB Failed...");
+    }
+    
+    myDB.transaction(function(transaction){
+        let selectQuery = "Select * from GUESTDETAILS where guestid = '"+gid+"'";
+        transaction.executeSql(selectQuery,[],ReadSuccess,ReadFailed);
+    }); 
+}
+
+function logoffListClicked(e){
+var gid=e.currentTarget.id;
+GetProfileData(gid);
+NavigateToPage(3);
+}
+
+function NavigateToPage(pageID){
+    $.mobile.navigate( "#page"+pageID );
+}
+
 function ReadDataFromDB(){   
     
     function ReadSuccess(tx,result){
         $("#logoffContent ul").empty();
-        $("#logoffContent ul").append(AddDataFromDB(result)).listview("refresh");
+        $("#logoffContent ul").append(AddDataFromDB(result));
+        $('#logoffContent ul').children('li').bind('tap', logoffListClicked);
+        $("#logoffContent ul").listview("refresh");
     }
 
     function ReadFailed(tx,error){
@@ -74,7 +123,7 @@ function ReadDataFromDB(){
     function AddDataFromDB(result){
         let str='';
         for(i=result.rows.length-1;i>=0;i--){
-            str+= '<li ><a><h3>';
+            str+= '<li id="'+result.rows.item(i).guestid+'"><a><h3>';
             str+=result.rows.item(i).guestname + " ("+result.rows.item(i).guestid+")";
             str+='</h3><p>';        
             str+=result.rows.item(i).contactperson;
