@@ -36,6 +36,7 @@ function onResetClick(){
 }
 
 function onSubmitClick(){
+var _date =new Date();
     var jsonData={};
     jsonData.GuestName=$("#name").val();
     jsonData.ContactPerson=$("#contactPerson").val();
@@ -43,6 +44,8 @@ function onSubmitClick(){
     jsonData.Purpose=$("[name=purpose]").val();
     jsonData.EMail=$("#emailID").val();
     jsonData.NationalIdentity=$("[name=nationalIDDdl]").val() + ":"+$("#nationalID").val();
+    jsonData.LoginTime=_date.toISOString();
+    jsonData.LogoutTime=_date.toISOString();
     SendData(jsonData);
 }
 
@@ -57,7 +60,7 @@ function ReadDataFromDB(){
         $("#logoffContent ul").append(AddDataFromDB(result)).listview("refresh");
     }
 
-    function ReadFailed(error){
+    function ReadFailed(tx,error){
         alert("Read From DB Failed...");
     }
     
@@ -72,24 +75,47 @@ function ReadDataFromDB(){
         let str='';
         for(i=result.rows.length-1;i>=0;i--){
             str+= '<li ><a><h3>';
-            str+=result.rows.item(i).guestname;
+            str+=result.rows.item(i).guestname + " ("+result.rows.item(i).guestid+")";
             str+='</h3><p>';        
             str+=result.rows.item(i).contactperson;
             str+='</p><p>';
-            str+="09:00";        
+            str+=new Date(result.rows.item(i).logintime).toLocaleTimeString([],{hour: '2-digit',minute:'2-digit'});
+            str+='</p><p>';
+            str+=new Date(result.rows.item(i).logintime).toDateString();            
             str+='</p></a></li>';
         }
         return str;
     }
 }
 
+function ProcessLogout(uniqueID){
+
+    function UpdateSuccess(t,result){
+        alert("Successfully Logged Out. Thanks for visiting.");
+    }
+
+    
+    function UpdateFailed(t,error){
+        alert("Logout Failed."+error.code);
+    }
+
+myDB.transaction(function(transaction)
+{
+    var executeQuery = "UPDATE GUESTDETAILS SET LOGOUTTIME = datetime('now', 'localtime') where MOBILE = '"+uniqueID+"'";
+    
+    transaction.executeSql(executeQuery,[], UpdateSuccess,UpdateFailed); 
+});
+
+}
+
 function insertData(guestData){
     var title = "Keshav";
 var desc = "Lose Yourself";
+var date =new Date();
 myDB.transaction(function(transaction)
 {
-    var executeQuery = "INSERT INTO GUESTDETAILS (GUESTNAME,CONTACTPERSON,MOBILE,PURPOSE,EMAIL,NATIONALID) VALUES (?,?,?,?,?,?)";
-    paramValues = [guestData.GuestName, guestData.ContactPerson,guestData.Mobile, guestData.Purpose,guestData.EMail, guestData.NationalIdentity];
+    var executeQuery = "INSERT INTO GUESTDETAILS (GUESTNAME,CONTACTPERSON,MOBILE,PURPOSE,EMAIL,NATIONALID,LOGINTIME,LOGOUTTIME) VALUES (?,?,?,?,?,?,?,?)";
+    paramValues = [guestData.GuestName, guestData.ContactPerson,guestData.Mobile, guestData.Purpose,guestData.EMail, guestData.NationalIdentity,guestData.LoginTime,guestData.LogoutTime];
     transaction.executeSql(executeQuery,paramValues, InsertSuccess,InsertFailed); 
 });
 
@@ -98,7 +124,7 @@ function InsertSuccess(t,result){
     ReadDataFromDB();
 }
 
-function InsertFailed(error){
+function InsertFailed(t,error){
     alert("Failed Inserting data...");
 }
 }
@@ -106,14 +132,18 @@ function InsertFailed(error){
 function ExportToCSV(){  
 
     function WriteToFile(str){
-function fail(){
+function fail(err){
     console.log("Failed");
 }
 
         function gotFS(fileSystem) {
-            fileSystem.getFile("test.txt", {create: true, exclusive: false}, gotFileEntry, fail);
+            fileSystem.getDirectory("GuestList", {create :true},gotDir,fail);
+            console.log("Directory created")            ;
         }
     
+        function gotDir(dirEntry){
+            dirEntry.getFile("GuestList.csv", {create :true,exclusive : false},gotFileEntry,fail);
+        }
         function gotFileEntry(fileEntry) {
             fileEntry.createWriter(gotFileWriter, fail);
         }
@@ -144,7 +174,7 @@ function fail(){
         WriteToFile(str);    
     }
 
-    function ReadFailed(error){
+    function ReadFailed(tx,error){
         alert("Read From DB Failed...");
     }
     
@@ -160,7 +190,7 @@ function fail(){
 function InitializeDB(){
     myDB = window.sqlitePlugin.openDatabase({name: "guestDataBase.db", location: 'default'});
     myDB.transaction(function(transaction) {
-        transaction.executeSql('CREATE TABLE IF NOT EXISTS guestDetails (guestname text, contactperson text, mobile text, purpose text,email text, nationalid text)', [],
+        transaction.executeSql('CREATE TABLE IF NOT EXISTS guestDetails (guestid integer PRIMARY KEY,guestname text, contactperson text, mobile text, purpose text,email text, nationalid text, logintime text,logouttime text)', [],
             function(tx, result) {
                 alert("Table created successfully");
             },
@@ -175,7 +205,7 @@ function DeleteAllData(){
         alert("Successfully Deleted All Entries.");
     }
     myDB.transaction(function(transaction){
-        transaction.executeSql("delete from GUESTDETAILS",[],DeleteSucceeded);
+        transaction.executeSql("drop table GUESTDETAILS",[],DeleteSucceeded);
     });
 }
 var app = {
