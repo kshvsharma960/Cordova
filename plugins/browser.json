@@ -24,6 +24,9 @@
     },
     "cordova-plugin-android-permissions": {
       "PACKAGE_NAME": "com.io.checkin"
+    },
+    "cordova-plugin-camera": {
+      "PACKAGE_NAME": "com.io.checkin"
     }
   },
   "dependent_plugins": {}

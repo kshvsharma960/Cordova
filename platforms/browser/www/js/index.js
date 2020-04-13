@@ -27,6 +27,15 @@ $("purpose").change(function(){
 
 var myDB ;
 var paramValues;
+var DBColumns=[];
+var profilePageData={};
+profilePageData.ProfileGuestName=document.getElementById("ProfileGuestName");
+profilePageData.ProfileGuestContactPerson=document.getElementById("ProfileContactPerson");
+profilePageData.ProfilePurpose=document.getElementById("ProfilePurpose");
+profilePageData.ProfileMobile=document.getElementById("ProfileMobile");
+profilePageData.ProfileMailID=document.getElementById("ProfileMailID");;
+profilePageData.ProfileLoginTime=document.getElementById("ProfileLoginTime");
+profilePageData.ProfilePicture=document.getElementById("guestImage");
 
 function onResetClick(){
     var textArray = $("input");
@@ -36,6 +45,7 @@ function onResetClick(){
 }
 
 function onSubmitClick(){
+var _date =new Date();
     var jsonData={};
     jsonData.GuestName=$("#name").val();
     jsonData.ContactPerson=$("#contactPerson").val();
@@ -43,26 +53,72 @@ function onSubmitClick(){
     jsonData.Purpose=$("[name=purpose]").val();
     jsonData.EMail=$("#emailID").val();
     jsonData.NationalIdentity=$("[name=nationalIDDdl]").val() + ":"+$("#nationalID").val();
+    jsonData.LoginTime=_date.toISOString();
+    jsonData.LogoutTime="";
     SendData(jsonData);
+    
 }
 
 function SendData(data){
     insertData(data);
+
+}
+
+function PopulateProfilePage(result){
+    if(result!=null){
+        if(result.rows.length>0){
+            let i=0;
+    profilePageData.ProfileGuestName.innerText=result.rows.item(i).guestname + " ("+result.rows.item(i).guestid+")";
+    profilePageData.ProfilePicture.setAttribute("alt",result.rows.item(i).guestname);
+    profilePageData.ProfileGuestContactPerson.innerText=result.rows.item(i).contactperson;
+    profilePageData.ProfileMailID.innerText=result.rows.item(i).email;
+    profilePageData.ProfileMobile.innerText=result.rows.item(i).mobile;
+    profilePageData.ProfilePurpose.innerText=result.rows.item(i).purpose;
+    profilePageData.ProfileLoginTime.innerText=(new Date(result.rows.item(i).logintime).toLocaleTimeString([],{hour: '2-digit',minute:'2-digit'}));
+    }
+}
+}
+
+function GetProfileData(gid){
+    function ReadSuccess(tx,result){
+        PopulateProfilePage(result);        
+    }
+
+    function ReadFailed(tx,error){
+        alert("Read From DB Failed...");
+    }
+    
+    myDB.transaction(function(transaction){
+        let selectQuery = "Select * from GUESTDETAILS where guestid = '"+gid+"'";
+        transaction.executeSql(selectQuery,[],ReadSuccess,ReadFailed);
+    }); 
+}
+
+function logoffListClicked(e){
+var gid=e.currentTarget.id;
+GetProfileData(gid);
+NavigateToPage(3);
+}
+
+function NavigateToPage(pageID){
+    $.mobile.navigate( "#page"+pageID );
 }
 
 function ReadDataFromDB(){   
     
     function ReadSuccess(tx,result){
         $("#logoffContent ul").empty();
-        $("#logoffContent ul").append(AddDataFromDB(result)).listview("refresh");
+        $("#logoffContent ul").append(AddDataFromDB(result));
+        $('#logoffContent ul').children('li').bind('tap', logoffListClicked);
+        $("#logoffContent ul").listview("refresh");
     }
 
-    function ReadFailed(error){
+    function ReadFailed(tx,error){
         alert("Read From DB Failed...");
     }
     
     myDB.transaction(function(transaction){
-        let selectQuery = "Select * from GUESTDETAILS";
+        let selectQuery = "Select * from GUESTDETAILS where LOGOUTTIME = ''";
         transaction.executeSql(selectQuery,[],ReadSuccess,ReadFailed);
     });
 
@@ -71,56 +127,106 @@ function ReadDataFromDB(){
     function AddDataFromDB(result){
         let str='';
         for(i=result.rows.length-1;i>=0;i--){
-            str+= '<li ><a><h3>';
-            str+=result.rows.item(i).guestname;
+            str+= '<li id="'+result.rows.item(i).guestid+'"><a><h3>';
+            str+=result.rows.item(i).guestname + " ("+result.rows.item(i).guestid+")";
             str+='</h3><p>';        
             str+=result.rows.item(i).contactperson;
             str+='</p><p>';
-            str+="09:00";        
+            str+=new Date(result.rows.item(i).logintime).toLocaleTimeString([],{hour: '2-digit',minute:'2-digit'});
+            str+='</p><p>';
+            str+=new Date(result.rows.item(i).logintime).toDateString();            
             str+='</p></a></li>';
         }
         return str;
     }
 }
 
+function ProcessLogout(e){
+
+    var uniqueID = profilePageData.ProfileMobile.innerText;
+    function UpdateSuccess(t,result){
+        alert("Successfully Logged Out. Thanks for visiting.");
+        ReadDataFromDB();
+        history.back();
+    }
+    
+    function UpdateFailed(t,error){
+        alert("Logout Failed."+error.code);
+    }
+
+    myDB.transaction(function(transaction)
+    {
+        var executeQuery = "UPDATE GUESTDETAILS SET LOGOUTTIME = datetime('now', 'localtime') where MOBILE = '"+uniqueID+"'";
+        
+        transaction.executeSql(executeQuery,[], UpdateSuccess,UpdateFailed); 
+    });
+}
+
+
 function insertData(guestData){
-    var title = "Keshav";
-var desc = "Lose Yourself";
+
+var date =new Date();
 myDB.transaction(function(transaction)
 {
-    var executeQuery = "INSERT INTO GUESTDETAILS (GUESTNAME,CONTACTPERSON,MOBILE,PURPOSE,EMAIL,NATIONALID) VALUES (?,?,?,?,?,?)";
-    paramValues = [guestData.GuestName, guestData.ContactPerson,guestData.Mobile, guestData.Purpose,guestData.EMail, guestData.NationalIdentity];
+    var executeQuery = "INSERT INTO GUESTDETAILS (GUESTNAME,CONTACTPERSON,MOBILE,PURPOSE,EMAIL,NATIONALID,LOGINTIME,LOGOUTTIME) VALUES (?,?,?,?,?,?,?,?)";
+    paramValues = [guestData.GuestName, guestData.ContactPerson,guestData.Mobile, guestData.Purpose,guestData.EMail, guestData.NationalIdentity,guestData.LoginTime,guestData.LogoutTime];
     transaction.executeSql(executeQuery,paramValues, InsertSuccess,InsertFailed); 
 });
 
 function InsertSuccess(t,result){
     alert("Successfully Inserted...");
+    GetProfileData(result.insertId);
+    NavigateToPage(3);
+    onResetClick();
     ReadDataFromDB();
 }
 
-function InsertFailed(error){
+function InsertFailed(t,error){
     alert("Failed Inserting data...");
 }
 }
 
-function ExportToCSV(){  
+function OverrideBackButton(){
+    document.addEventListener('deviceready',function(){
+        var exitApp = false,intval = setInterval(function(){
+            exitApp=false;
+        },1000);
+        document.addEventListener('backbutton',function(e){
+            e.preventDefault();
+            if(exitApp){
+                clearInterval(intval)
+                (navigator.app && navigator.app.exitApp())|| (device && device.exitApp())
+            }
+            else{
+                exitApp=true;
+                history.back(1);
+            }
+        },false);
+        },false);
+    }
 
+function ExportToCSV(){  
+    GetColumns();
     function WriteToFile(str){
-function fail(){
+function fail(err){
     console.log("Failed");
 }
 
         function gotFS(fileSystem) {
-            fileSystem.getFile("Guest.txt", {create: true, exclusive: false}, gotFileEntry, fail);
+            fileSystem.getDirectory("GuestList", {create :true},gotDir,fail);
+            console.log("Directory created")            ;
         }
     
+        function gotDir(dirEntry){
+            dirEntry.getFile("GuestList.csv", {create :true,exclusive : false},gotFileEntry,fail);
+        }
         function gotFileEntry(fileEntry) {
             fileEntry.createWriter(gotFileWriter, fail);
         }
     
         function gotFileWriter(writer) {
             writer.onwriteend = function() {
-                alert("Exported Successfully to : " + cordova.file.dataDirectory);
+                alert("Exported Successfully to : " + cordova.file.externalRootDirectory);
             }
             writer.onerror = function(e) {
                alert('Write failed: ' + e.toString());
@@ -129,12 +235,14 @@ function fail(){
             writer.write(str);
             
         }
-        window.resolveLocalFileSystemURL(cordova.file.dataDirectory, gotFS, fail);
+        window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, gotFS, fail);
     }
 
     function ReadSuccess(tx,result){
         let str='';
-        
+            $.each(DBColumns,function(i,v){
+                str += str + ", ";  
+            });
             for(i=result.rows.length-1;i>=0;i--){    
                 $.each(Object.keys(result.rows.item(0)),function(j,v){        
                 str+=result.rows.item(i)[v] + ", ";   
@@ -144,7 +252,7 @@ function fail(){
         WriteToFile(str);    
     }
 
-    function ReadFailed(error){
+    function ReadFailed(tx,error){
         alert("Read From DB Failed...");
     }
     
@@ -152,20 +260,35 @@ function fail(){
         let selectQuery = "Select * from GUESTDETAILS";
         transaction.executeSql(selectQuery,[],ReadSuccess,ReadFailed);
     });
+}
 
+function GetColumns(){
+
+    function ReadSuccess(tx,colData){
+        $.each(colData,function(i,v){
+            DBColumns.push(v);
+        });
+    }
+
+    function ReadFailed(tx,error){
+        alert("Read From DB Failed...");
+    }
     
-
+    myDB.transaction(function(transaction){
+        let selectQuery = "pragma table_info(GUESTDETAILS)";
+        transaction.executeSql(selectQuery,[],ReadSuccess,ReadFailed);
+    });
 }
 
 function InitializeDB(){
     myDB = window.sqlitePlugin.openDatabase({name: "guestDataBase.db", location: 'default'});
     myDB.transaction(function(transaction) {
-        transaction.executeSql('CREATE TABLE IF NOT EXISTS guestDetails (guestname text, contactperson text, mobile text, purpose text,email text, nationalid text)', [],
+        transaction.executeSql('CREATE TABLE IF NOT EXISTS guestDetails (guestid integer PRIMARY KEY,guestname text, contactperson text, mobile text, purpose text,email text, nationalid text, logintime text,logouttime text)', [],
             function(tx, result) {
-                alert("Table created successfully");
+                console.log("Table created successfully");
             },
             function(error) {
-                alert("Error occurred while creating the table.");
+                console.log("Error occurred while creating the table.");
             });
     });
 }
@@ -173,9 +296,10 @@ function InitializeDB(){
 function DeleteAllData(){
     function DeleteSucceeded(error){
         alert("Successfully Deleted All Entries.");
+        InitializeDB();
     }
     myDB.transaction(function(transaction){
-        transaction.executeSql("delete from GUESTDETAILS",[],DeleteSucceeded);
+        transaction.executeSql("drop table GUESTDETAILS",[],DeleteSucceeded);
     });
 }
 var app = {
@@ -190,37 +314,29 @@ var app = {
     onDeviceReady: function() {
         InitializeDB();
         this.receivedEvent('deviceready');
+        ReadDataFromDB();
     },
 
     // Update DOM on a Received Event
     receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
+        //welcome screen
+        var exitApp = false,intval = setInterval(function(){
+            exitApp=false;
+        },1000);
+        document.addEventListener('backbutton',function(e){
+            e.preventDefault();
+            if(exitApp){
+                clearInterval(intval)
+                (navigator.app && navigator.app.exitApp())|| (device && device.exitApp())
+            }
+            else{
+                exitApp=true;
+                history.back(1);
+            }
+        },false);
+        var parentElement = document.getElementById("logoffContentUL");
+        parentElement.style("height",window.innerHeight)
     }
 };
-/*
-window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(fs){
-    fs.root.getFile("'"+audioData[0].name+"'", {create: true, exclusive: false},
-      function(entry){
-        var fileTransfer = new FileTransfer();
-        fileTransfer.download(
-                "file:///storage/emulated/0/Sounds/" + audioData[0].name, // the filesystem uri you mentioned                  
-                "cdvfile://localhost/temporary/" + audioData[0].name,
-                function(entry) {
-                    // do what you want with the entry here
-                    console.log("download complete: " + entry.fullPath);
-                    window.requestFileSystem(LocalFileSystem.TEMPORARY, 1000000000, gotFS, fail);
-                },
-                function(error) {
-                    console.log("error source " + error.source);
-                    console.log("error target " + error.target);
-                    console.log("error code " + error.code + "Cheeeese");
-                },
-                false,
-                null
-        );
-    }, function(){
-        alert("file create error");
-    });
-}, null);
-*/
+
 app.initialize();

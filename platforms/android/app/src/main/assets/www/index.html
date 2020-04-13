@@ -52,23 +52,27 @@
     <body>
 		<!-- jquery mobile page 1 -->
 		<div data-role="page" id="page1">
-			<div data-role="header">
+			<div data-role="header" >
 					<a href="#page2"  title="Goto Check-Out">Goto Check-Out</a>
 				<h1>Login</h1>	
 				<a href="#navpanel" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 			</div>
 			<div data-role="panel" id="navpanel">
 				<div data-role="controlgroup" data-corners="true">
-					<a href="javascript:DeleteAllData()" data-role="button">Clear Data</a>
-					<a href="#" data-role="button">Search</a>
-					<a href="#" data-role="button">Export</a>
-					<a href="#" data-role="button">Admin Portal</a>
+					<a href="javascript:DeleteAllData()" data-role="button">Clear Data</a>					
+					<a href="#" data-role="button">Export</a>					
 				</div>
 			</div>
 			<div role="main" class="ui-content">				
 					<div id="checkinContent">
+						<div onclick="OpenCamera()" class="image" style="margin: 0 auto 0 auto; display: block;">
+							<div class="circle-1"></div>
+							<div class="circle-2"></div>
+							<img id="guestImageAtLogin" src="" width="70" height="70" alt=""/>
+						</div>
 						<table align="center" class="contentTable">
-						<tr>
+						
+						<tr></tr>
 							<td>
 								<label>Full Name  &nbsp;</label>
 							</td>
@@ -165,13 +169,13 @@
 					<a href="javascript:DeleteAllData()" data-role="button">Clear Data</a>
 					<a href="#" data-role="button">Search</a>
 					<a href="javascript:ExportToCSV()" data-role="button">Export</a>
-					<a href="#page3" data-role="button">Admin Portal</a>
+					
 				</div>
 			</div>
 			
 			<div role="main" class="ui-content">				
 				<div id="logoffContent">
-					<ul id ="logoffContentUL" data-role="listview" >
+					<ul id ="logoffContentUL" data-role="listview" data-filter="true">
 						
 					</ul>
 				</div>
@@ -197,21 +201,20 @@
 	<div role="main" class="ui-content">				
 		<div id="BadgeContent">
 			<div class="frame">
-				<div class="center">
-				  
+				<div class="center">				  
 					  <div class="profile">
 						  <div class="image">
 							  <div class="circle-1"></div>
 							  <div class="circle-2"></div>
-							  <img src="https://100dayscss.com/codepen/jessica-potter.jpg" width="70" height="70" alt="Jessica Potter">
+							  <img id="guestImage" src="" width="70" height="70" alt="">
 						  </div>
 						  
-						  <div id ="ProfileGuestName" class="name">Jessica Potter</div>
-						  <div id= "ProfileContactPerson" class="subhead">Visual Artist</div>
-						  <div id= "ProfilePurpose" class="subhead">Visual Artist</div>
+						  <div id ="ProfileGuestName" class="name">Guest Name</div>
+						  <div id= "ProfileContactPerson" class="subhead">Contact Person</div>
+						  <div id= "ProfilePurpose" class="subhead">Purpose</div>
 						  
 						  <div class="actions">
-							  <button class="btn">Logout</button>
+							  <button id= "ProfileLogoutButton"  onclick = "ProcessLogout(this)" class="btn">Logout</button>
 							  <button onclick = "history.back()" class="btn">Back</button>
 						  </div>
 					  </div>
